@@ -1,5 +1,7 @@
 // 50 x 30 is bird's footprint
 
+var doneLoop = false; // global variable to make synchronous functions (waits)
+
 // function to set x,y, and size attributes for all elements
 function init(){
 	setPosition("flappyBirdButton", 110, 100, 100, 40);
@@ -12,6 +14,11 @@ function init(){
 // function to move specified elements around the screen
 function move(id, x, y){
 	setPosition(id, getXPosition(id) + x, getYPosition(id) + y);
+}
+
+// returns "sign" of a number (1 for positive, -1 for negative, and 0 for zero) - useful for velocities
+function sgn(num){
+  return num > 0 ? 1 : num < 0 ? -1 : 0;
 }
 
 // to be called once per game loop, updates x and y coords for object
@@ -75,7 +82,7 @@ onEvent("flappyBirdButton", "click", function( ) {
   	}
   	else{
   	  console.log("hit ground");
-  	
+
   	}
   	flappyGame.pipes.move();
 		update(flappyGame.pipes);
@@ -112,10 +119,8 @@ onEvent("flappyBirdHomeScreen", "keypress", function(event) {
 		else{
 		  console.log("hit roof");
 		}	
-		  
 	}
 });
-		
 
 // NINJA GAME
 
@@ -192,4 +197,64 @@ onEvent("ninjaHomeScreen", "keypress", function(event) {
 		showElement(ninjaGame.ninja.curState);
 
 	}
+});
+
+// PONG GAME
+
+var pongGame = {
+	score: 0, // score of pongGame
+	ball: {
+		id: "ball",	// ball image id
+		x: randomNumber(20, 288), y: randomNumber(20, 300), // sets ball at random position every run
+		xSpeed: 2.4, ySpeed : 2.4, // how much ball moves in x and y
+	},
+	paddle: {
+		id: "paddle",	// paddle image id
+		x: 0, y: 0, // position of ball
+
+	}
+};
+
+onEvent("pongHomeScreen", "keydown", function(event) {
+	switch(event.key){
+		case "Left":
+			if(pongGame.paddle.x > 0){
+				move("paddle", -20, 0);
+			}
+			break;
+		case "Right":
+			if(pongGame.paddle.x < 252){
+				move("paddle", 20, 0);
+			}
+			break;
+	}
+});
+
+onEvent("pongButton", "click", function( ) {
+	setScreen("pongHomeScreen");
+	timedLoop(20, function() {
+	update(pongGame.ball);
+	update(pongGame.paddle);
+	// if ball hits sides of screen, bounces off screen by inverting the ball's x velocity
+	if(pongGame.ball.x < 0 || pongGame.ball.x > 307){
+		pongGame.ball.xSpeed *= -1;
+	}
+	// if ball hits top of screen, bounces off screen by inverting ball's y velocity
+	if(pongGame.ball.y < 0 || pongGame.ball.y > 437){
+		pongGame.ball.ySpeed *= -1;
+	}
+	// otherwise, if the ball hits the paddle, also invert ball's y velocity and increment score
+	else if(pongGame.ball.x > pongGame.paddle.x && pongGame.ball.x < pongGame.paddle.x + 64 && pongGame.ball.y < pongGame.paddle.y && pongGame.ball.y > pongGame.paddle.y - 12){
+		pongGame.ball.ySpeed *= -1;
+		pongGame.score++;
+		pongGame.ball.xSpeed += sgn(pongGame.ball.xSpeed) * 0.2;
+		pongGame.ball.ySpeed += sgn(pongGame.ball.ySpeed) * 0.2;
+	}
+	// ends game if ball touches ground
+	if(pongGame.ball.y > 430){
+		console.log("game over");
+		stopTimedLoop();
+	}
+	move("ball", pongGame.ball.xSpeed, pongGame.ball.ySpeed);
+	});
 });

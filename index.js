@@ -1,4 +1,10 @@
-// 50 x 30 is bird's footprint
+// Nikhil Gante
+// June 14th, 2021
+// ICS2O0
+// "Nikhil's Arcade"
+/* The following project serves as a 4 minigame app, consisting of
+Flappy Bird, Ninja, Pong, and Simon.
+*/
 
 var doneLoop = false; // global variable to make synchronous functions (waits)
 
@@ -20,6 +26,13 @@ function move(id, x, y){
 function sgn(num){
   return num > 0 ? 1 : num < 0 ? -1 : 0;
 }
+
+// since Applab's setTimeout function is asynchronous(creates a new thread), this wait serves as blocking code
+// it waits for the specified amount of milliseconds
+function wait(time) {
+	var timer = getTime();
+	while (getTime() - timer < time){}
+  }
 
 // to be called once per game loop, updates x and y coords for object
 function update(obj){
@@ -258,3 +271,96 @@ onEvent("pongButton", "click", function( ) {
 	move("ball", pongGame.ball.xSpeed, pongGame.ball.ySpeed);
 	});
 });
+
+// SIMON GAME
+
+var simonGame = {
+	score: 0,	// user's score
+	curNum: 0,	// iterator of user input loop (keeps track of how far in the sequence the user is in)
+	loop: null,	// variable to store timedloop id
+	compPattern: [],	// array to store computer-generated pattern
+	input: 0, // number of button last pressed
+	userTurn: false,	// if in user sequence phase
+	addCompElement: function(){
+		console.log("adding comp element");
+		this.compPattern.push(randomNumber(0, 4));
+	},
+	flashButton: function(buttonId){	// rapidly shrinks and grows button to singify it's been pressed
+
+		// playSound();
+
+		// shrinks button (and moves it correspondingly so the centre is still in the same position)
+  		move(buttonId, 20, 20);
+  		setProperty(buttonId, "width", 60);
+  		setProperty(buttonId, "height", 60);
+
+		wait(100);	// pauses for 100 milliseconds
+
+		// enlarges button (and moves it back to the original position)
+		move(buttonId, -20, -20);
+		setProperty(buttonId, "width", 100);
+		setProperty(buttonId, "height", 100);
+
+		wait(100);	// pauses for 100 milliseconds	
+	},
+	compSequence: function(){
+		wait(500);	// pauses for 500 milliseconds	
+		console.log("in comp sequence");
+
+		for(var x in this.compPattern){
+			console.log(this.compPattern[x]);
+			simonGame.flashButton("simonButton" + this.compPattern[x]);
+		}
+		console.log("exited comp sequence");
+		this.userTurn = true;	// it is the user's turn now
+	},
+	handleInput: function(buttonNum) {
+		console.log("handling input");
+		
+		if (this.userTurn){	// if it is user's turn
+			this.flashButton("simonButton" + buttonNum);
+			this.input = buttonNum;	// sets the input according to the button pressed
+			if(this.input == this.compPattern[this.curNum]){	// user correctly selected the level
+				this.curNum++;	// increment sequence iterator
+				if(this.curNum >= this.compPattern.length){	// user has passed level
+					this.score++;	// increments score
+					this.curNum = 0;	// resets iterator for next round
+					this.userTurn = false;
+				}
+			}
+			else{
+				console.log(this.compPattern);
+				console.log("num: "+ this.curNum);
+				console.log("user failed" + "input was: " + this.input + " target was: " + this.compPattern[this.curNum]);
+			}
+		}
+	},
+};
+
+onEvent("simonButton0", "click", function() {	// Top button
+	simonGame.handleInput(0);
+});
+onEvent("simonButton1", "click", function() {	// Left button
+	simonGame.handleInput(1);
+});
+onEvent("simonButton2", "click", function() {	// Centre button
+	simonGame.handleInput(2);
+});
+onEvent("simonButton3", "click", function() {	// Right button
+	simonGame.handleInput(3);
+});
+onEvent("simonButton4", "click", function() {	// Bottom button
+	simonGame.handleInput(4);
+});
+
+// main simon game
+onEvent("simonButton", "click", function( ) {
+	setScreen("simonHomeScreen");
+	simonGame.loop = timedLoop(20, function() {
+		if(!simonGame.userTurn){
+			simonGame.addCompElement();	// adds one new element to the computer's pattern
+			simonGame.compSequence();	// flashes the buttons according to the sequence chosen by the computer
+		}
+	});
+});
+

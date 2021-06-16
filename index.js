@@ -7,15 +7,15 @@ The following project serves as a 4 minigame app, consisting of
 Flappy Bird, Ninja, Pong, and Simon.
 */
 
-var doneLoop = false; // global variable to make synchronous functions (waits)
 var lastGame;	// global variable to sotre last game (used when game is lost)
 
 // function to set x,y, and size attributes for all elements
 function init(){
-	setPosition("flappyBirdButton", 110, 100, 100, 40);
-	setPosition("ninjaButton", 110, 190, 100, 40);
-	setPosition("pongButton", 110, 280, 100, 40);
-	setPosition("simonButton", 110, 370, 100, 40);
+	setPosition("flappyBirdButton", 100, 80, 120, 40);
+	setPosition("ninjaButton", 100, 160, 120, 40);
+	setPosition("pongButton", 100, 240, 120, 40);
+	setPosition("simonButton", 100, 320, 120, 40);
+	setPosition("instructionsButton", 100, 400, 120, 40);
 	setPosition("flappyBird", 50, 190, 60, 60);
 }
 
@@ -62,58 +62,6 @@ var flappyGame = {
 	soundPlayed: false, // if sound for scoring has been played yet
 	scoreId: "scoreTextFlappy",	// id of the score display element
 	enabled: true, // if flappy bird game is being played
-	reset: function(){
-		console.log("resetted");
-		setScreen(this.screen);
-		this.loop = null;
-		this.score = 0;
-		this.soundPlayed = false;
-		this.enabled = true;
-		this.bird.gravity = 2.0;
-		setPosition("flappyBird", 50, 190);
-		flappyGame.pipes.spawn();	// spawns new pipes
-		// shows score
-		showElement(flappyGame.scoreId);
-		setPosition(flappyGame.scoreId, 155, 410, 175, 35);
-		setText(flappyGame.scoreId, "Score: 0");
-	},
-	main: function(){	// where the repeated part of the game code lies
-		flappyGame.loop = timedLoop(20, function() {
-			// applies gravity if flappy bird is being played and bird is above the ground
-			if (flappyGame.enabled && getYPosition("flappyBird") < 405){
-				move("flappyBird", 0, flappyGame.bird.gravity);
-			}
-			else{
-				console.log("hit ground");
-				endGame(flappyGame);
-			}
-			
-			flappyGame.pipes.move();
-			update(flappyGame.pipes);
-			update(flappyGame.bird);
-			
-			// collision detection for flappy (i.e. bird has hit pipe)
-			if (!flappyGame.bird.soundPlayed && flappyGame.bird.x > flappyGame.pipes.x - 45 && flappyGame.bird.x < flappyGame.pipes.x + 70 && (flappyGame.bird.y < flappyGame.pipes.y - 107 || flappyGame.bird.y > flappyGame.pipes.y - 20)){
-				flappyGame.bird.death();
-				flappyGame.bird.soundPlayed = true;
-				hitCount++;
-				console.log("bird hit pipe" + hitCount);
-				endGame(flappyGame);
-			}
-			
-			if (!flappyGame.bird.soundPlayed && flappyGame.pipes.x < flappyGame.bird.x - 70){
-				playSound("sound://category_accent/puzzle_game_accent_a_06.mp3");
-				flappyGame.bird.soundPlayed = true;
-			}
-			// if pipes have reached end of screen, increase the score and respawn pipes
-			if (flappyGame.pipes.x < -80){
-				flappyGame.score++;
-				setText(flappyGame.scoreId, "Score: " + flappyGame.score);	// updates score display
-				flappyGame.pipes.speed -= 0.2;
-				flappyGame.pipes.spawn();
-			}
-		  });
-	},
 	bird: {
 		id: "flappyBird",	// flappy image id
 		upForce: -35, // how much flappy bird goes up when the spacebar is clicked
@@ -140,16 +88,67 @@ var flappyGame = {
 			setPosition("topPipe", flappyGame.pipes.x, flappyGame.pipes.y - flappyGame.pipes.diff);
 			flappyGame.bird.soundPlayed = false;
 		}
+	},
+	reset: function(){	// to reset the necessary variables and elements for a game
+		console.log("resetted");
+		setScreen(this.screen);
+		this.loop = null;
+		this.score = 0;
+		this.soundPlayed = false;
+		this.enabled = true;
+		this.bird.gravity = 2.0;
+		setPosition("flappyBird", 50, 190);
+		flappyGame.pipes.spawn();	// spawns new pipes
+		// shows score
+		showElement(flappyGame.scoreId);
+		setPosition(flappyGame.scoreId, 155, 410, 175, 35);
+		setText(flappyGame.scoreId, "Score: 0");
+	},
+	main: function(){	// where the repeated part of the game code lies
+		this.reset();	// resets game variables and elements
+		this.loop = timedLoop(20, function() {
+			// applies gravity if flappy bird is being played and bird is above the ground
+			if (flappyGame.enabled && getYPosition("flappyBird") < 405){
+				move("flappyBird", 0, flappyGame.bird.gravity);
+			}
+			else{
+				console.log("hit ground");
+				endGame(flappyGame);
+			}
+			
+			flappyGame.pipes.move();
+			update(flappyGame.pipes);
+			update(flappyGame.bird);
+			
+			// collision detection for flappy (i.e. bird has hit pipe)
+			if (!flappyGame.bird.soundPlayed && flappyGame.bird.x > flappyGame.pipes.x - 45 && flappyGame.bird.x < flappyGame.pipes.x + 70 && (flappyGame.bird.y < flappyGame.pipes.y - 107 || flappyGame.bird.y > flappyGame.pipes.y - 20)){
+				flappyGame.bird.death();
+				flappyGame.bird.soundPlayed = true;
+				endGame(flappyGame);
+			}
+			
+			if (!flappyGame.bird.soundPlayed && flappyGame.pipes.x < flappyGame.bird.x - 70){
+				playSound("sound://category_accent/puzzle_game_accent_a_06.mp3");
+				flappyGame.bird.soundPlayed = true;
+			}
+			
+			// if pipes have reached end of screen, increase the score and respawn pipes
+			if (flappyGame.pipes.x < -80){
+				flappyGame.score++;
+				setText(flappyGame.scoreId, "Score: " + flappyGame.score);	// updates score display
+				flappyGame.pipes.speed -= 0.2;
+				flappyGame.pipes.spawn();
+			}
+		});
 	}
 };
-var hitCount = 0;
+
 init();
 
 // on events for buttons to enter minigames
 
 onEvent("flappyBirdButton", "click", function() {
 	flappyGame.reset();	// resets game variables and elements
-	flappyGame.main();	// main game loop
 });
 
 onEvent("flappyBirdHomeScreen", "keypress", function(event) {
@@ -192,38 +191,48 @@ var ninjaGame = {
 			this.x = 320,	this. y = Math.random() < 0.5? this.topY : this.bottomY;
 			setPosition("spikeCanvas", this.x, this.y);
 		}
+	},
+	reset: function(){	// to reset the necessary variables and elements for a game
+		setScreen("ninjaHomeScreen");
+		showElement("topNinja");
+		hideElement("bottomNinja");
+		this.ninja.prevState = "bottomNinja";	// the ninja's previous state was on bottom
+		this.ninja.curState = "topNinja";	// the ninja starts on top by default
+		this.spike.speed = -3;	// spike's speed needs to be resetted to 3
+		this.score = 0;	// resets score
+
+		// shows score
+		showElement(this.scoreId);
+		setPosition(this.scoreId, 145, 410, 175, 35);
+		setText(this.scoreId, "Score: 0");
+	
+		setActiveCanvas("spikeCanvas");	// makes the spike canvas active to draw on
+		rect(0,0, 55, 100);	// fills in the canvas with a black rectangle (which is the spike)
+		this.spike.spawn();	// spawns new spike
+	},
+	main: function(){	// where the repeated part of the game code lies
+		this.reset();	// resets game variables and elements
+		ninjaGame.loop = timedLoop(20, function() {
+			ninjaGame.ninja.update();
+			update(ninjaGame.spike);
+			move("spikeCanvas", ninjaGame.spike.speed, 0);
+			if(ninjaGame.spike.x < -55){	// respawns spike when at end of screen
+				ninjaGame.score++;	// increments score
+				setText(ninjaGame.scoreId, "Score: " + ninjaGame.score);	// updates score display
+				ninjaGame.spike.speed -= 0.4;
+				ninjaGame.spike.spawn();
+			}
+			// collision detection for spike and ninja
+			// makes sure states of ninja and spike match up before checking if both x positions match up
+			if(ninjaGame.spike.y == ninjaGame.ninja.y && ninjaGame.spike.x > ninjaGame.ninja.x && ninjaGame.spike.x < ninjaGame.ninja.x + 100){ 
+				console.log("spike hit ninja");
+				endGame(ninjaGame);
+			}	
+		});
 	}
 };  
 onEvent("ninjaButton", "click", function( ) {
-	setScreen("ninjaHomeScreen");
-	hideElement("bottomNinja");
-	ninjaGame.ninja.state = "topNinja";	// the ninja starts on top by default
-	
-	// shows score
-	showElement(ninjaGame.scoreId);
-	setPosition(ninjaGame.scoreId, 145, 410, 175, 35);
-	setText(ninjaGame.scoreId, "Score: 0");
-
-	setActiveCanvas("spikeCanvas");	// makes the spike canvas active to draw on
-	rect(0,0, 55, 100);	// fills in the canvas with a black rectangle (which is the spike)
-	
-	ninjaGame.loop = timedLoop(20, function() {
-		ninjaGame.ninja.update();
-		update(ninjaGame.spike);
-		move("spikeCanvas", ninjaGame.spike.speed, 0);
-		if(ninjaGame.spike.x < -55){	// respawns spike when at end of screen
-			ninjaGame.score++;	// increments score
-			setText(ninjaGame.scoreId, "Score: " + ninjaGame.score);	// updates score display
-			ninjaGame.spike.speed -= 0.4;
-			ninjaGame.spike.spawn();
-		}
-		// collision detection for spike and ninja
-		// makes sure states of ninja and spike match up before checking if both x positions match up
-		if(ninjaGame.spike.y == ninjaGame.ninja.y && ninjaGame.spike.x > ninjaGame.ninja.x && ninjaGame.spike.x < ninjaGame.ninja.x + 100){ 
-			console.log("spike hit ninja");
-			endGame(ninjaGame);
-		}	
-	});
+	ninjaGame.main();	// main game loop
 }); 
 onEvent("ninjaHomeScreen", "keypress", function(event) {
 	if (event.key == " "){
@@ -250,38 +259,28 @@ var pongGame = {
 	scoreId: "scoreTextPong",	// id of the score display element
 	ball: {
 		id: "ball",	// ball image id
-		x: randomNumber(20, 288), y: randomNumber(20, 300), // sets ball at random position every run
+		x: 0, y: 0, // sets ball at random position every run
 		xSpeed: 2.4, ySpeed : 2.4, // how fast ball moves in x and y
 	},
 	paddle: {
 		id: "paddle",	// paddle image id
 		x: 0, y: 0, // position of ball
-	}
-};
-
-onEvent("pongHomeScreen", "keydown", function(event) {
-	switch(event.key){
-		case "Left":
-			if(pongGame.paddle.x > 0){
-				move("paddle", -20, 0);
-			}
-			break;
-		case "Right":
-			if(pongGame.paddle.x < 252){
-				move("paddle", 20, 0);
-			}
-			break;
-	}
-});
-
-onEvent("pongButton", "click", function() {
-	setScreen("pongHomeScreen");
+	},
+	reset: function(){	// to reset the necessary variables and elements for a game
+		setScreen("pongHomeScreen");
+		this.ball.xSpeed = 2.4, this.ball.ySpeed = 2.4, // resets how fast ball moves in x and y
+		this.ball.x = randomNumber(20, 288), this.ball.y = randomNumber(20, 300);
+		setPosition(this.ball.id, this.ball.x, this.ball.y);	// resets ball's positions
+		setPosition(this.paddle.id, 135, 380);	// resets paddle's position
+		this.score = 0;	// resets score
 		// shows score
 		showElement(pongGame.scoreId);
 		setPosition(pongGame.scoreId, 145, 410, 175, 35);
 		setText(pongGame.scoreId, "Score: 0");
-	
-		pongGame.loop = timedLoop(20, function() {
+	},
+	main: function(){	// where the repeated part of the game code lies
+		this.reset();	// resets game variables and elements
+		this.loop = timedLoop(20, function() {
 			update(pongGame.ball);
 			update(pongGame.paddle);
 			// if ball hits sides of screen, bounces off screen by inverting the ball's x velocity
@@ -306,7 +305,27 @@ onEvent("pongButton", "click", function() {
 				endGame(pongGame);
 			}
 			move("ball", pongGame.ball.xSpeed, pongGame.ball.ySpeed);
-	});
+		});
+	}
+};
+
+onEvent("pongHomeScreen", "keydown", function(event) {
+	switch(event.key){
+		case "Left":
+			if(pongGame.paddle.x > 0){
+				move("paddle", -20, 0);
+			}
+			break;
+		case "Right":
+			if(pongGame.paddle.x < 252){
+				move("paddle", 20, 0);
+			}
+			break;
+	}
+});
+
+onEvent("pongButton", "click", function() {
+	pongGame.main();	// main game loop
 });
 
 // SIMON GAME
@@ -375,6 +394,31 @@ var simonGame = {
 			}
 		}
 	},
+	reset: function(){	// to reset the necessary variables and elements for a game
+		
+		// resets variables
+		this.score = 0;
+		this.curNum =  0;
+		this.compPattern = [];
+		this.input = 0;
+		this.userTurn = false;
+
+		setScreen("simonHomeScreen");	// resets screen	
+		// shows score
+		showElement(simonGame.scoreId);
+		setPosition(simonGame.scoreId, 145, 410, 175, 35);
+		setText(simonGame.scoreId, "Score: 0");
+	
+	},
+	main: function(){	// where the repeated part of the game code lies
+		this.reset();	// resets game variables and elements
+		simonGame.loop = timedLoop(20, function() {
+			if(!simonGame.userTurn){
+				simonGame.addCompElement();	// adds one new element to the computer's pattern
+				simonGame.compSequence();	// flashes the buttons according to the sequence chosen by the computer
+			}
+		});
+	}
 };
 
 onEvent("simonButton0", "click", function() {	// Top button
@@ -395,26 +439,26 @@ onEvent("simonButton4", "click", function() {	// Bottom button
 
 // main simon game
 onEvent("simonButton", "click", function() {
-	setScreen("simonHomeScreen");
-	
-	// shows score
-	showElement(simonGame.scoreId);
-	setPosition(simonGame.scoreId, 145, 410, 175, 35);
-	setText(simonGame.scoreId, "Score: 0");
-
-	simonGame.loop = timedLoop(20, function() {
-		if(!simonGame.userTurn){
-			simonGame.addCompElement();	// adds one new element to the computer's pattern
-			simonGame.compSequence();	// flashes the buttons according to the sequence chosen by the computer
-		}
-	});
+	simonGame.main();	// main game loop	
 });
 
+// resets the last game that was played 
 onEvent("playAgainButton", "click", function() {
 	lastGame.reset();	// resets game
 	lastGame.main();	// plays main game loop
 });
 
+// goes to home screen when home button is pressed
 onEvent("homeButton", "click", function() {
 	setScreen("homeScreen");
+});
+
+// goes to instructions screen when instructions button is pressed
+onEvent("instructionsButton", "click", function( ) {
+  setScreen("instructionsScreen");
+});
+
+// goes to back to home screen when back button is pressed
+onEvent("backButton", "click", function( ) {
+  setScreen("homeScreen");
 });

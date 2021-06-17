@@ -97,6 +97,7 @@ var flappyGame = {
 		this.soundPlayed = false;
 		this.enabled = true;
 		this.bird.gravity = 2.0;
+		this.pipes.speed = -2.0;
 		setPosition("flappyBird", 50, 190);
 		flappyGame.pipes.spawn();	// spawns new pipes
 		// shows score
@@ -148,7 +149,7 @@ init();
 // on events for buttons to enter minigames
 
 onEvent("flappyBirdButton", "click", function() {
-	flappyGame.reset();	// resets game variables and elements
+	flappyGame.main();	// resets game variables and elements
 });
 
 onEvent("flappyBirdHomeScreen", "keypress", function(event) {
